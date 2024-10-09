@@ -4,7 +4,7 @@
       <input type="text" class="form-control" v-model="task.name" placeholder="Task name">
       <span class="text-danger" v-if="txtErr">{{ txtErr }}</span>
     </div>
-    <button type="submit" class="btn btn-success mx-2" style="height: fit-content;">Lưu</button>
+    <button type="submit" class="btn btn-success mx-2" style="height: fit-content;">Save</button>
   </form>
 </template>
 
