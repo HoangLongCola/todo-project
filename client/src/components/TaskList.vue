@@ -5,7 +5,7 @@
         class="list-group-item d-flex justify-content-between list-group-item-action content-task"
         draggable="true"
         @dragstart="onDragStart(index)"
-        @dragover.prevent
+        @dragover.prevent="onDragOver(index)"
         @drop="onDrop(index)">
         <template v-if="indexEdit === index">
           <Taskform :taskEdit="task" @update-task="updateTask" />
@@ -59,8 +59,7 @@ import { ref } from 'vue';
 import Taskform from './Taskform.vue';
 const emit = defineEmits(['update-task', 'delete-task', 'update-task-order']);
 
-const indexEdit = ref(null);
-const draggedIndex = ref(null);
+const indexEdit = ref(null); 
 
 const props = defineProps({
   tasks: {
@@ -69,18 +68,26 @@ const props = defineProps({
   },
 });
 
+const draggedIndex = ref(null);
+const tasks = ref([...props.tasks]);
+
 const onDragStart = (index) => {
   draggedIndex.value = index;
 };
 
-const onDrop = (index) => {
-  const draggedTask = props.tasks[draggedIndex.value];
+const onDragOver = (index) => {
+  if (draggedIndex.value === index) return;
 
-  const copyTasks = [...props.tasks];
-  copyTasks.splice(draggedIndex.value, 1); 
-  copyTasks.splice(index, 0, draggedTask);
+  const draggedTask = tasks.value[draggedIndex.value];
+  
+  tasks.value.splice(draggedIndex.value, 1);
+  tasks.value.splice(index, 0, draggedTask); 
+  
+  draggedIndex.value = index; 
+};
 
-  const updatedTasks = copyTasks.map((task, idx) => ({
+const onDrop = () => {
+  const updatedTasks = tasks.value.map((task, idx) => ({
     ...task,
     order: idx + 1,
   }));
