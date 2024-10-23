@@ -12,7 +12,10 @@ const taskApi = {
         return await put(`/tasks/${data.id}`, data)
     },
     delete: async (id) => {
-        return await del(`/tasks/${id}`, )
+        return await del(`/tasks/${id}`)
+    },
+    updateOrder: async (data) => {
+        return await put('/tasks/order', data)
     }
 }
 

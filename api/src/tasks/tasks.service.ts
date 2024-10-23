@@ -17,9 +17,18 @@ export class TasksService {
 
   async create(createTaskDto: CreateTaskDto, userId: number): Promise<Task> {
     if (!userId) throw new UnauthorizedException('Chưa đăng nhập');
+
+    const orderNewTask = await this.taskRepository.createQueryBuilder('task')
+    .select('MAX(task.order)', 'maxOrder')
+    .where('task.userId = :userId', { userId })
+    .getRawOne();
+
+    const newOrder = orderNewTask.maxOrder ? orderNewTask.maxOrder + 1 : 1;
+
     const taskNew = this.taskRepository.create({
       ...createTaskDto,
       user: { id: userId },
+      order: newOrder
     });
     return this.taskRepository.save(taskNew);
   }
@@ -73,6 +82,7 @@ export class TasksService {
     }
   
     return await query.orderBy('task.is_pinned', 'DESC')
+      .addOrderBy('task.order', 'ASC')
       .addOrderBy('task.createdAt', 'DESC')
       .getMany();
   }
@@ -85,6 +95,14 @@ export class TasksService {
   async update(id: number, updateTaskDto: UpdateTaskDto): Promise<Task> {
     await this.taskRepository.update(id, updateTaskDto);
     return this.findOne(id);
+  }
+
+  async updateOrder(tasks: Task[]): Promise<boolean> {
+    const updatePromises = tasks.map(task =>
+      this.taskRepository.update(task.id, { order: task.order }),
+    );
+    await Promise.all(updatePromises);
+    return true;
   }
 
   async remove(id: number): Promise<boolean> {

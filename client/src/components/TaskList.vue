@@ -1,61 +1,66 @@
 <template>
-    <ul class="list-group">
-      <template v-if="tasks.length">
-        <li v-for="(task, index) in tasks" :key="task.id" class="list-group-item d-flex justify-content-between list-group-item-action" >
-          <template v-if="indexEdit === index">
-            <Taskform :taskEdit="task" @update-task="updateTask" />
-          </template>
-          <template v-else>
-            <div>
-              <p class="m-0" style="max-width: 600px; word-wrap: break-word;">
-                {{ task.title }}
-              </p>
-              <span class="badge text-bg-success mx-1">
-                Ngày tạo: {{ new Date(task.createdAt).toLocaleDateString() }}
-              </span>
-              <span class="badge text-bg-danger mx-1">
-                Ngày hết hạn: {{ task.due_date ? new Date(task.due_date).toLocaleDateString() : 'Không có' }}
-              </span>
-              <span v-if="task.is_completed" class="badge text-bg-success mx-1">
-                Đã hoàn thành
-              </span>
-            </div>
-            <div class="d-flex align-items-center">
-              <a class="mx-2" href="#" @click.prevent="toggleVisibility(task)"
-                :class="{ 'text-secondary': !task.is_hidden }">
-                <i :class="`fa-solid fa-eye${task.is_hidden ? '' : '-slash'}`"></i>
+  <ul class="list-group">
+    <template v-if="tasks.length">
+      <li v-for="(task, index) in tasks" :key="task.id"
+        class="list-group-item d-flex justify-content-between list-group-item-action content-task"
+        draggable="true"
+        @dragstart="onDragStart(index)"
+        @dragover.prevent
+        @drop="onDrop(index)">
+        <template v-if="indexEdit === index">
+          <Taskform :taskEdit="task" @update-task="updateTask" />
+        </template>
+        <template v-else>
+          <div>
+            <p class="m-0" style="max-width: 600px; word-wrap: break-word;">
+              {{ task.title }}
+            </p>
+            <span class="badge text-bg-success mx-1">
+              Ngày tạo: {{ new Date(task.createdAt).toLocaleDateString() }}
+            </span>
+            <span class="badge text-bg-danger mx-1">
+              Ngày hết hạn: {{ task.due_date ? new Date(task.due_date).toLocaleDateString() : 'Không có' }}
+            </span>
+            <span v-if="task.is_completed" class="badge text-bg-success mx-1">
+              Đã hoàn thành
+            </span>
+          </div>
+          <div class="d-flex align-items-center">
+            <a class="mx-2" href="#" @click.prevent="toggleVisibility(task)"
+              :class="{ 'text-secondary': !task.is_hidden }">
+              <i :class="`fa-solid fa-eye${task.is_hidden ? '' : '-slash'}`"></i>
+            </a>
+            <a class="mx-2" href="#" @click.prevent="togglePin(task)" :class="{ 'text-secondary': !task.is_pinned }">
+              <i :class="`fa-solid fa-thumbtack${task.is_pinned ? '' : '-slash'}`"></i>
+            </a>
+            <template v-if="!task.is_completed">
+              <a class="mx-2 text-success" href="#" @click.prevent="completeTask(task)">
+                <i class="fa-solid fa-check"></i>
               </a>
-              <a class="mx-2" href="#" @click.prevent="togglePin(task)" :class="{ 'text-secondary': !task.is_pinned }">
-                <i :class="`fa-solid fa-thumbtack${task.is_pinned ? '' : '-slash'}`"></i>
+              <a class="mx-2" href="#" @click.prevent="editTask(index)">
+                <i class="fa-solid fa-pen"></i>
               </a>
-              <template v-if="!task.is_completed">
-                <a class="mx-2 text-success" href="#" @click.prevent="completeTask(task)">
-                  <i class="fa-solid fa-check"></i>
-                </a>
-                <a class="mx-2" href="#" @click.prevent="editTask(index)">
-                  <i class="fa-solid fa-pen"></i>
-                </a>
-                <a class="mx-2 text-danger" href="#" @click.prevent="deleteTask(task.id)">
-                  <i class="fa-solid fa-trash"></i>
-                </a>
-              </template>
-            </div>
-          </template>
-        </li>
-      </template>
-      <template v-else>
-        <li class="list-group-item text-center">Chưa có dữ liệu</li>
-      </template>
-    </ul>
+              <a class="mx-2 text-danger" href="#" @click.prevent="deleteTask(task.id)">
+                <i class="fa-solid fa-trash"></i>
+              </a>
+            </template>
+          </div>
+        </template>
+      </li>
+    </template>
+    <template v-else>
+      <li class="list-group-item text-center">Chưa có dữ liệu</li>
+    </template>
+  </ul>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import Taskform from './Taskform.vue';
+const emit = defineEmits(['update-task', 'delete-task', 'update-task-order']);
 
-const emit = defineEmits(['update-task', 'delete-task']);
-
-const indexEdit = ref('');
+const indexEdit = ref(null);
+const draggedIndex = ref(null);
 
 const props = defineProps({
   tasks: {
@@ -64,8 +69,27 @@ const props = defineProps({
   },
 });
 
+const onDragStart = (index) => {
+  draggedIndex.value = index;
+};
+
+const onDrop = (index) => {
+  const draggedTask = props.tasks[draggedIndex.value];
+
+  const copyTasks = [...props.tasks];
+  copyTasks.splice(draggedIndex.value, 1); 
+  copyTasks.splice(index, 0, draggedTask);
+
+  const updatedTasks = copyTasks.map((task, idx) => ({
+    ...task,
+    order: idx + 1,
+  }));
+  
+  emit('update-task-order', updatedTasks);
+};
+
 const updateTask = (data) => {
-  indexEdit.value = '';
+  indexEdit.value = null;
   emit('update-task', data);
 };
 
@@ -89,3 +113,8 @@ const deleteTask = (id) => {
   emit('delete-task', id);
 };
 </script>
+<style scoped>
+.content-task {
+  cursor: grab;
+}
+</style>

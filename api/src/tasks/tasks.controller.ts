@@ -55,6 +55,11 @@ export class TasksController {
     );
   }
 
+  @Put('order')
+  async updateTaskOrder(@Body() tasks: Task[]): Promise<boolean> {
+    return this.tasksService.updateOrder(tasks);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string): Promise<Task> {
     return this.tasksService.findOne(+id);

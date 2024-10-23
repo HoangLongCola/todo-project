@@ -75,7 +75,7 @@
           </div>
         </template>
         <template v-else>
-          <TaskList :tasks="tasks" @update-task="updateTask" @delete-task="deleteTask" />
+          <TaskList :tasks="tasks" @update-task="updateTask" @delete-task="deleteTask" @update-task-order="updateTaskOrder" />
         </template>
       </div>
     </div>
@@ -147,6 +147,13 @@ const deleteTask = async (id) => {
     push.success('Đã xóa công việc');
   }
 };
+
+const updateTaskOrder = async (data) => {
+  const taskUpdate = await taskApi.updateOrder(data);
+  if (taskUpdate) {
+    loadData(0);
+  }
+}
 
 const changeTab = (tab) => {
   currentTab.value = tab;

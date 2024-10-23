@@ -25,11 +25,11 @@ export class Task {
   @Column({ default: false })
   is_pinned: boolean;
 
+  @Column({ default: 0 })
+  order: number;
+
   @CreateDateColumn()
   createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 
   @Column({ type: 'date', nullable: true })
   due_date: string;
