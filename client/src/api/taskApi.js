@@ -5,8 +5,8 @@ const taskApi = {
     create: async (data) => {
         return await post("/tasks", data);
     },
-    showList: async () => {
-        return await get("/tasks");
+    showList: async (params) => {
+        return await get("/tasks/search", params);
     },
     update: async (data) => {
         return await put(`/tasks/${data.id}`, data)

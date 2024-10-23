@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -22,16 +26,57 @@ export class TasksService {
 
   async findAll(userId: number): Promise<Task[]> {
     return this.taskRepository.find({
-      where: { 
+      where: {
         user: { id: userId },
-        is_hidden: false,
-       },
+      },
       order: {
         is_pinned: 'DESC',
         createdAt: 'DESC',
       },
     });
   }
+
+  async searchTasks(
+    userId: number, 
+    searchTerm?: string, 
+    startDate?: Date, 
+    endDate?: Date, 
+    isPinned?: boolean, 
+    isHidden?: boolean, 
+    isCompleted?: boolean
+  ): Promise<Task[]> {
+    const query = this.taskRepository.createQueryBuilder('task')
+      .where('task.userId = :userId', { userId });
+  
+    if (searchTerm) {
+      query.andWhere('task.title LIKE :searchTerm', { searchTerm: `%${searchTerm}%` });
+    }
+  
+    if (startDate) {
+      query.andWhere('task.createdAt >= :startDate', { startDate });
+    }
+  
+    if (endDate) {
+      query.andWhere('task.due_date <= :endDate', { endDate });
+    }
+  
+    if (isPinned !== undefined) {
+      query.andWhere('task.is_pinned = :isPinned', { isPinned });
+    }
+  
+    if (isHidden !== undefined) {
+      query.andWhere('task.is_hidden = :isHidden', { isHidden });
+    }
+  
+    if (isCompleted !== undefined) {
+      query.andWhere('task.is_completed = :isCompleted', { isCompleted });
+    }
+  
+    return await query.orderBy('task.is_pinned', 'DESC')
+      .addOrderBy('task.createdAt', 'DESC')
+      .getMany();
+  }
+  
 
   async findOne(id: number): Promise<Task> {
     return this.taskRepository.findOneBy({ id });

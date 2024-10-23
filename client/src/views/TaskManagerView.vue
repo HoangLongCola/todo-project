@@ -1,10 +1,95 @@
 <template>
   <main class="d-flex justify-content-center mt-5">
-    <div style="width: 800px;">
-      <h2 class="text-center my-2">QUẢN LÝ CÔNG VIỆC</h2>
-      <Taskform @add-task="addTask" />
+    <div style="min-width: 800px;">
+      <h2 class="text-center">QUẢN LÝ CÔNG VIỆC</h2>
+      <div class="d-flex justify-content-between my-2">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+          Thêm mới
+        </button>
+        <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+          aria-labelledby="staticBackdropLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Thêm Công Việc Mới</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <Taskform @add-task="addTask" />
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary">Lưu</button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      <TaskList :tasks="tasks" @update-task="updateTask" @delete-task="deleteTask" />
+        <div class="d-flex">
+          <span class="d-inline-flex gap-1">
+            <a class="btn " @click="toggleFillter">
+              <template v-if="enableFillter">
+                <span class="mx-2">Huỷ lọc</span>
+                <i class="fa-solid fa-filter-circle-xmark" ></i>
+              </template>
+              <template v-else>
+                <span class="mx-2">Lọc</span>
+                <i class="fa-solid fa-filter" ></i>
+              </template>
+            </a>
+          </span>
+          <div class="dropdown">
+            <a class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              {{ currentTab === 0 ? "Tất cả " : "Công việc đã ẩn" }}
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item" :class="{ active: currentTab === 0 }" @click="changeTab(0)" href="#">
+                  Tất cả
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" :class="{ active: currentTab === 1 }" @click="changeTab(1)" href="#">
+                  Công việc đã ẩn
+                </a>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="collapse" :class="enableFillter ? 'show' : ''" style="min-width: 800px;">
+        <div class="card card-body">
+          <div class="mb-3">
+            <label for="name" class="form-label">Tên công việc</label>
+            <input type="text" class="form-control" id="name" placeholder="Nhập tên công việc cần tìm" v-model="title"
+              @input="loadData">
+          </div>
+          <div class="d-flex row">
+            <div class="mb-3 col-6">
+              <label for="startDate" class="form-label">Từ ngày</label>
+              <input type="date" class="form-control" id="startDate" v-model="startDate" @change="loadData">
+            </div>
+            <div class="mb-3 col-6">
+              <label for="endDate" class="form-label">Đến ngày</label>
+              <input type="date" class="form-control" id="endDate" v-model="endDate" @change="loadData">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="my-2">
+        <template v-if="loadding">
+          <div class="d-flex justify-content-center">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Đang lấy dữ liệu ...</span>
+            </div>
+          </div>
+        </template>
+        <template v-else>
+          <TaskList :tasks="tasks" @update-task="updateTask" @delete-task="deleteTask" />
+        </template>
+      </div>
     </div>
   </main>
 </template>
@@ -17,20 +102,45 @@ import taskApi from '@/api/taskApi';
 import { push } from 'notivue';
 
 const tasks = ref([]);
+const currentTab = ref(0);
+const title = ref('');
+const startDate = ref('');
+const endDate = ref('');
 
+const loadding = ref(false);
+const enableFillter = ref(false);
 onMounted(() => {
   loadData();
 });
 
-const loadData = async () => {
-  tasks.value = (await taskApi.showList()) || [];
+const toggleFillter = () => {
+  enableFillter.value = !enableFillter.value
+  if (!enableFillter.value) {
+    title.value = '';
+    startDate.value = '';
+    endDate.value = '';
+    loadData();
+  }
+}
+const loadData = () => {
+  loadding.value = true;
+  setTimeout(async () => {
+    tasks.value = await taskApi.showList({
+      isHidden: currentTab.value,
+      title: title.value,
+      startDate: startDate.value,
+      endDate: endDate.value
+    }) || [];
+    loadding.value = false;
+  }, 1000)
 };
+
 
 const addTask = async (task) => {
   const response = await taskApi.create(task);
   loadData();
-  if(response){
-    push.success('Đã thêm công việc'); 
+  if (response) {
+    push.success('Đã thêm công việc');
   }
 };
 
@@ -50,4 +160,10 @@ const deleteTask = async (id) => {
     push.success('Đã xóa công việc');
   }
 };
+
+const changeTab = (tab) => {
+  currentTab.value = tab;
+  loadData();
+};
+
 </script>

@@ -1,8 +1,7 @@
 <template>
-  <div class="my-3">
     <ul class="list-group">
       <template v-if="tasks.length">
-        <li v-for="(task, index) in tasks" :key="task.id" class="list-group-item d-flex justify-content-between">
+        <li v-for="(task, index) in tasks" :key="task.id" class="list-group-item d-flex justify-content-between list-group-item-action" >
           <template v-if="indexEdit === index">
             <Taskform :taskEdit="task" @update-task="updateTask" />
           </template>
@@ -11,27 +10,25 @@
               <p class="m-0" style="max-width: 600px; word-wrap: break-word;">
                 {{ task.title }}
               </p>
-              <span class="text-muted">
+              <span class="badge text-bg-success mx-1">
                 Ngày tạo: {{ new Date(task.createdAt).toLocaleDateString() }}
               </span>
-              |
-              <span class="text-muted">
+              <span class="badge text-bg-danger mx-1">
                 Ngày hết hạn: {{ task.due_date ? new Date(task.due_date).toLocaleDateString() : 'Không có' }}
+              </span>
+              <span v-if="task.is_completed" class="badge text-bg-success mx-1">
+                Đã hoàn thành
               </span>
             </div>
             <div class="d-flex align-items-center">
-              <span v-if="task.is_completed" class="badge text-bg-success">
-                Đã hoàn thành
-              </span>
-              <template v-else>
-                <a class="mx-2" href="#" @click.prevent="toggleVisibility(task)"
-                  :class="{ 'text-secondary': !task.is_hidden }">
-                  <i :class="`fa-solid fa-eye${task.is_hidden ? '' : '-slash'}`"></i>
-                </a>
-                <a class="mx-2" href="#" @click.prevent="togglePin(task)"
-                  :class="{ 'text-secondary': !task.is_pinned }">
-                  <i :class="`fa-solid fa-thumbtack${task.is_pinned ? '' : '-slash'}`"></i>
-                </a>
+              <a class="mx-2" href="#" @click.prevent="toggleVisibility(task)"
+                :class="{ 'text-secondary': !task.is_hidden }">
+                <i :class="`fa-solid fa-eye${task.is_hidden ? '' : '-slash'}`"></i>
+              </a>
+              <a class="mx-2" href="#" @click.prevent="togglePin(task)" :class="{ 'text-secondary': !task.is_pinned }">
+                <i :class="`fa-solid fa-thumbtack${task.is_pinned ? '' : '-slash'}`"></i>
+              </a>
+              <template v-if="!task.is_completed">
                 <a class="mx-2 text-success" href="#" @click.prevent="completeTask(task)">
                   <i class="fa-solid fa-check"></i>
                 </a>
@@ -47,10 +44,9 @@
         </li>
       </template>
       <template v-else>
-        <li class="list-group-item">Chưa có dữ liệu</li>
+        <li class="list-group-item text-center">Chưa có dữ liệu</li>
       </template>
     </ul>
-  </div>
 </template>
 
 <script setup>

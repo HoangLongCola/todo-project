@@ -42,7 +42,7 @@ const handleSubmit = () => {
 const resetForm = () => {
   task.value = {
     title: '',
-    due_date: '',
+    due_date: null,
   };
 };
 </script>
