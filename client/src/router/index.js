@@ -1,11 +1,9 @@
-import TaskManagerView from '@/views/TaskManagerView.vue'
-import LoginView from '@/views/LoginView.vue'
-import RegisterView from '@/views/RegisterView.vue'
-import { createRouter, createWebHistory } from 'vue-router'
-
-const isAuthenticated = () => {
-  return localStorage.getItem('access_token')
-}
+import TaskManagerView from "@/views/TaskManagerView.vue";
+import LoginView from "@/views/LoginView.vue";
+import RegisterView from "@/views/RegisterView.vue";
+import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "@/stores/authStore";
+import { push } from "notivue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -15,28 +13,41 @@ const router = createRouter({
       name: "home",
       component: TaskManagerView,
       meta: {
-        isAuth: true
-      }
+        isAuth: true,
+      },
     },
     {
       path: "/dang-ky",
       name: "register",
-      component: RegisterView
+      component: RegisterView,
     },
     {
       path: "/dang-nhap",
       name: "login",
-      component: LoginView
-    }
-  ]
-})
+      component: LoginView,
+    },
+  ],
+});
 
 router.beforeEach(async (to, form, next) => {
-  if(to.matched.some(route => route.meta.isAuth) && !isAuthenticated()){
-    return next('/dang-nhap');
-  }else{
-    return next();
-  }
-})
+  const authStore = useAuthStore();
 
-export default router
+  if (
+    authStore.isAuthenticated &&
+    (to.name === "login" || to.name === "register")
+  ) {
+    return next({ name: "home" });
+  }
+
+  if (
+    to.matched.some((route) => route.meta.isAuth) &&
+    !authStore.isAuthenticated
+  ) {
+    push.warning("Bạn cần phải đăng nhập");
+    return next({ name: "login" });
+  }
+
+  return next();
+});
+
+export default router;

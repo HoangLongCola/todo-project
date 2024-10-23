@@ -42,18 +42,20 @@ import router from '@/router';
 import { reactive } from 'vue';
 import authApi from '@/api/authApi'
 import { push } from "notivue";
+import { useAuthStore } from '@/stores/authStore';
 
 const formData = reactive({
     username: '',
     password: ''
 })
 
+const authStore = useAuthStore();
+
 const onSubmit = async () => {
     const response = await authApi.login(formData);
-
     if (response.access_token) {
-        localStorage.setItem('access_token', response.access_token);
-        push.success(`Chào ${response.data.name}!`)
+        authStore.login(response.access_token);
+        push.success(`Chào ${response.data.name}! Phiên đăng nhập sẽ hết hạn sau 120s`)
         router.push({ name: "home" });
     }
 }

@@ -16,8 +16,9 @@ const notivue = createNotivue({
   enqueue: false,
   limit: 1,
 });
+const pinia = createPinia()
 
-app.use(createPinia());
+app.use(pinia);
 app.use(router);
 app.use(notivue);
 app.mount("#app");

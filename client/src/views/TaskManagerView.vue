@@ -3,38 +3,22 @@
     <div style="min-width: 800px;">
       <h2 class="text-center">QUẢN LÝ CÔNG VIỆC</h2>
       <div class="d-flex justify-content-between my-2">
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-          Thêm mới
-        </button>
-        <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-          aria-labelledby="staticBackdropLabel" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h1 class="modal-title fs-5" id="staticBackdropLabel">Thêm Công Việc Mới</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <Taskform @add-task="addTask" />
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-primary">Lưu</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
+        <span class="d-inline-flex gap-1">
+          <a class="btn btn-success" data-bs-toggle="collapse" href="#showAddForm" role="button" aria-expanded="false"
+            aria-controls="showAddForm">
+            Thêm mới công việc
+          </a>
+        </span>
         <div class="d-flex">
           <span class="d-inline-flex gap-1">
-            <a class="btn " @click="toggleFillter">
+            <a class="btn" @click="toggleFillter">
               <template v-if="enableFillter">
                 <span class="mx-2">Huỷ lọc</span>
-                <i class="fa-solid fa-filter-circle-xmark" ></i>
+                <i class="fa-solid fa-filter-circle-xmark"></i>
               </template>
               <template v-else>
                 <span class="mx-2">Lọc</span>
-                <i class="fa-solid fa-filter" ></i>
+                <i class="fa-solid fa-filter"></i>
               </template>
             </a>
           </span>
@@ -55,10 +39,14 @@
               </li>
             </ul>
           </div>
-
         </div>
       </div>
 
+      <div class="collapse my-2" id="showAddForm" style="min-width: 800px;">
+        <div class="card card-body">
+          <Taskform @add-task="addTask" />
+        </div>
+      </div>
       <div class="collapse" :class="enableFillter ? 'show' : ''" style="min-width: 800px;">
         <div class="card card-body">
           <div class="mb-3">
@@ -122,7 +110,7 @@ const toggleFillter = () => {
     loadData();
   }
 }
-const loadData = () => {
+const loadData = (timeout = 1000) => {
   loadding.value = true;
   setTimeout(async () => {
     tasks.value = await taskApi.showList({
@@ -132,31 +120,30 @@ const loadData = () => {
       endDate: endDate.value
     }) || [];
     loadding.value = false;
-  }, 1000)
+  }, timeout)
 };
-
 
 const addTask = async (task) => {
   const response = await taskApi.create(task);
-  loadData();
   if (response) {
+    loadData(500);
     push.success('Đã thêm công việc');
   }
 };
 
 const updateTask = async (data, mess) => {
   const taskUpdate = await taskApi.update(data);
-  loadData();
   const index = tasks.value.findIndex(i => i.id === taskUpdate.id);
   if (index !== -1) {
+    loadData(500);
     push.success(mess ?? 'Đã cập nhật công việc');
   }
 };
 
 const deleteTask = async (id) => {
   const taskDelete = await taskApi.delete(id);
-  loadData();
   if (taskDelete) {
+    loadData(500);
     push.success('Đã xóa công việc');
   }
 };

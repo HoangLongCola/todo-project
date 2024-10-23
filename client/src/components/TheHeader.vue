@@ -12,17 +12,20 @@
                         <RouterLink :to="{ name: 'home' }" class="nav-link">TODO</RouterLink>
                     </li>
                 </ul>
-                <button type="button" class="btn btn-link"  @click="logout">Đăng xuất</button>
+                <button type="button" class="btn btn-link" v-if="authStore.isAuthenticated"  @click="logout">Đăng xuất</button>
             </div>
         </div>
     </nav>
 </template>
 <script setup>
 import router from '@/router';
+import { useAuthStore } from '@/stores/authStore';
+import { push } from 'notivue';
 import { RouterLink } from 'vue-router';
-
+const authStore = useAuthStore();
 const logout = async () => {
-    localStorage.removeItem('access_token');
+    authStore.logout();
+    push.warning('Đã đăng xuất')
     router.push({ name: "login" });
 }
 </script>

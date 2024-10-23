@@ -50,8 +50,6 @@ const formData = reactive({
 
 const onSubmit = async () => {
   const result = await authApi.register(formData)
-  console.log(result);
-  
   if (result) {
     push.success("Đăng ký tài khoản thành công!");
     router.push({ name: 'login' });

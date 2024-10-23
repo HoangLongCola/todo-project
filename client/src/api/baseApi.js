@@ -1,16 +1,16 @@
 import router from "@/router";
+import { useAuthStore } from "@/stores/authStore";
 import { push } from "notivue";
 
 const BASE_URL = "http://localhost:3000/api";
-
-const getToken = () => localStorage.getItem("access_token");
 
 const buildQueryString = (params) => {
   return new URLSearchParams(params).toString();
 };
 
 const request = async (url, options = {}, params = {}) => {
-  const token = getToken();
+  const authStore = useAuthStore();
+  const token =  localStorage.getItem('access_token');
 
   if (Object.keys(params).length) {
     url += `?${buildQueryString(params)}`;
@@ -28,7 +28,7 @@ const request = async (url, options = {}, params = {}) => {
   if (!response.ok) {
     const error = await response.json();
     if (response.status === 401 && token) {
-      localStorage.removeItem("access_token");
+      authStore.logout();
       router.push({ name: "login" });
       push.warning("Phiên đăng nhập đã hết hạn");
       return false;
@@ -38,8 +38,6 @@ const request = async (url, options = {}, params = {}) => {
     } else {
       push.error(error.message);
     }
-    console.log(error);
-
     return false;
     // throw new Error(error || "Đã xảy ra lỗi");
   }
