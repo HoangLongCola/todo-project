@@ -123,8 +123,8 @@ const toggleFillter = () => {
   }
 }
 
-const loadData = (mess = '', type = '') => {
-  loadding.value = true;
+const loadData = (mess = '', type = '', load = true) => {
+  loadding.value = load;
   setTimeout(async () => {
     try {
       tasks.value = await taskApi.showList({
@@ -171,7 +171,7 @@ const updateTaskOrder = async (data) => {
   } else {
     const taskUpdate = await taskApi.updateOrder(data);
     if (taskUpdate) {
-      loadData();
+      loadData('', '', false);
     }
   }
 }
