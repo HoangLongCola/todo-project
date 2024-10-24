@@ -3,7 +3,7 @@
     <template v-if="tasks.length">
       <li v-for="(task, index) in tasks" :key="task.id"
         class="list-group-item d-flex justify-content-between list-group-item-action content-task"
-        draggable="true"
+        :draggable="indexEdit == null ? true : false"
         @dragstart="onDragStart(index)"
         @dragover.prevent="onDragOver(index)"
         @drop="onDrop(index)">
@@ -88,8 +88,6 @@ const onDragOver = (index) => {
 };
 
 const onDrop = () => {
-  console.log(tasks.value);
-  
   const updatedTasks = tasks.value.map((task, idx) => ({
     ...task,
     order: idx + 1,
