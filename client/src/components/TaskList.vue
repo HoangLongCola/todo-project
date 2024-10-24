@@ -26,13 +26,7 @@
             </span>
           </div>
           <div class="d-flex align-items-center">
-            <a class="mx-2" href="#" @click.prevent="toggleVisibility(task)"
-              :class="{ 'text-secondary': !task.is_hidden }">
-              <i :class="`fa-solid fa-eye${task.is_hidden ? '' : '-slash'}`"></i>
-            </a>
-            <a class="mx-2" href="#" @click.prevent="togglePin(task)" :class="{ 'text-secondary': !task.is_pinned }">
-              <i :class="`fa-solid fa-thumbtack${task.is_pinned ? '' : '-slash'}`"></i>
-            </a>
+            
             <template v-if="!task.is_completed">
               <a class="mx-2 text-success" href="#" @click.prevent="completeTask(task)">
                 <i class="fa-solid fa-check"></i>
@@ -44,6 +38,13 @@
                 <i class="fa-solid fa-trash"></i>
               </a>
             </template>
+            <a class="mx-2" href="#" @click.prevent="toggleVisibility(task)"
+              :class="{ 'text-secondary': !task.is_hidden }">
+              <i :class="`fa-solid fa-eye${task.is_hidden ? '' : '-slash'}`"></i>
+            </a>
+            <a class="mx-2" href="#" @click.prevent="togglePin(task)" :class="{ 'text-secondary': !task.is_pinned }">
+              <i :class="`fa-solid fa-thumbtack${task.is_pinned ? '' : '-slash'}`"></i>
+            </a>
           </div>
         </template>
       </li>
@@ -55,7 +56,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import Taskform from './Taskform.vue';
 const emit = defineEmits(['update-task', 'delete-task', 'update-task-order']);
 
@@ -68,8 +69,8 @@ const props = defineProps({
   },
 });
 
+const tasks = computed(() => props.tasks);
 const draggedIndex = ref(null);
-const tasks = ref([...props.tasks]);
 
 const onDragStart = (index) => {
   draggedIndex.value = index;
@@ -87,6 +88,8 @@ const onDragOver = (index) => {
 };
 
 const onDrop = () => {
+  console.log(tasks.value);
+  
   const updatedTasks = tasks.value.map((task, idx) => ({
     ...task,
     order: idx + 1,

@@ -67,21 +67,33 @@
         </div>
       </div>
       <div class="my-2">
-        <template v-if="loadding">
-          <div class="d-flex justify-content-center">
-            <div class="spinner-border" role="status">
-              <span class="visually-hidden">Đang lấy dữ liệu ...</span>
-            </div>
-          </div>
-        </template>
-        <template v-else>
-          <TaskList :tasks="tasks" @update-task="updateTask" @delete-task="deleteTask" @update-task-order="updateTaskOrder" />
-        </template>
+        <TaskList :tasks="tasks" @update-task="updateTask" @delete-task="deleteTask"
+          @update-task-order="updateTaskOrder" />
       </div>
     </div>
+    <template v-if="loadding">
+      <div class="loading-overlay">
+        <div class="spinner-border" role="status">
+        </div>
+      </div>
+    </template>
   </main>
 </template>
 
+<style scoped>
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+</style>
 <script setup>
 import Taskform from '@/components/Taskform.vue';
 import TaskList from '@/components/TaskList.vue';
@@ -110,24 +122,31 @@ const toggleFillter = () => {
     loadData();
   }
 }
-const loadData = (timeout = 1000) => {
+
+const loadData = (mess = '', type = '') => {
   loadding.value = true;
   setTimeout(async () => {
-    tasks.value = await taskApi.showList({
-      isHidden: currentTab.value,
-      title: title.value,
-      startDate: startDate.value,
-      endDate: endDate.value
-    }) || [];
-    loadding.value = false;
-  }, timeout)
-};
+    try {
+      tasks.value = await taskApi.showList({
+        isHidden: currentTab.value,
+        title: title.value,
+        startDate: startDate.value,
+        endDate: endDate.value
+      }) || [];
+    } catch (error) {
+      console.error('Lỗi khi tải dữ liệu:', error);
+    } finally {
+      loadding.value = false;
+      if (mess && type) push[type](mess);
+    }
+  }, 300)
+}
+
 
 const addTask = async (task) => {
   const response = await taskApi.create(task);
   if (response) {
-    loadData(500);
-    push.success('Đã thêm công việc');
+    loadData('Đã thêm công việc', 'success');
   }
 };
 
@@ -135,23 +154,25 @@ const updateTask = async (data, mess) => {
   const taskUpdate = await taskApi.update(data);
   const index = tasks.value.findIndex(i => i.id === taskUpdate.id);
   if (index !== -1) {
-    loadData(500);
-    push.success(mess ?? 'Đã cập nhật công việc');
+    loadData(mess ?? 'Đã cập nhật công việc', 'success');
   }
 };
 
 const deleteTask = async (id) => {
   const taskDelete = await taskApi.delete(id);
   if (taskDelete) {
-    loadData(500);
-    push.success('Đã xóa công việc');
+    loadData('Đã xóa công việc', 'success');
   }
 };
 
 const updateTaskOrder = async (data) => {
-  const taskUpdate = await taskApi.updateOrder(data);
-  if (taskUpdate) {
-    loadData(0);
+  if (enableFillter.value) {
+    push.warning('Đang ở chế độ lọc, những thay đổi vị trí của task sẽ không được lưu')
+  } else {
+    const taskUpdate = await taskApi.updateOrder(data);
+    if (taskUpdate) {
+      loadData();
+    }
   }
 }
 

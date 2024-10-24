@@ -15,6 +15,12 @@ const app = createApp(App);
 const notivue = createNotivue({
   enqueue: false,
   limit: 1,
+  avoidDuplicates: true,
+  notifications: {
+    global: {
+      duration: 2000
+    }
+  }
 });
 const pinia = createPinia()
 
