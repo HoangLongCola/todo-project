@@ -3,10 +3,8 @@
     <template v-if="tasks.length">
       <li v-for="(task, index) in tasks" :key="task.id"
         class="list-group-item d-flex justify-content-between list-group-item-action content-task"
-        :draggable="indexEdit == null ? true : false"
-        @dragstart="onDragStart(index)"
-        @dragover.prevent="onDragOver(index)"
-        @drop="onDrop(index)">
+        :draggable="indexEdit == null ? true : false" @dragstart="onDragStart(index)"
+        @dragover.prevent="onDragOver(index)" @drop="onDrop(index)" @dragend="onDragEnd(index)">
         <template v-if="indexEdit === index">
           <Taskform :taskEdit="task" @update-task="updateTask" />
         </template>
@@ -26,9 +24,10 @@
             </span>
           </div>
           <div class="d-flex align-items-center">
-            
+
             <template v-if="!task.is_completed">
-              <a class="mx-2 text-success" href="#" @click.prevent="completeTask(task)">
+              <a class="mx-2 text-success" href="#" data-bs-toggle="modal" data-bs-target="#complete"
+                @click.prevent="completeTask(task)">
                 <i class="fa-solid fa-check"></i>
               </a>
               <a class="mx-2" href="#" @click.prevent="editTask(index)">
@@ -60,7 +59,7 @@ import { computed, ref } from 'vue';
 import Taskform from './Taskform.vue';
 const emit = defineEmits(['update-task', 'delete-task', 'update-task-order']);
 
-const indexEdit = ref(null); 
+const indexEdit = ref(null);
 
 const props = defineProps({
   tasks: {
@@ -74,6 +73,20 @@ const draggedIndex = ref(null);
 
 const onDragStart = (index) => {
   draggedIndex.value = index;
+
+  const items = document.querySelectorAll('.content-task');
+  items.forEach((item, i) => {
+    if (i === index) {
+      item.classList.add('dragging');
+    }
+  });
+};
+
+const onDragEnd = (index) => {
+  const items = document.querySelectorAll('.content-task');
+  items.forEach((item, i) => {
+    item.classList.remove('dragging');
+  });
 };
 
 const onDragOver = (index) => {
@@ -124,5 +137,23 @@ const deleteTask = (id) => {
 <style scoped>
 .content-task {
   cursor: grab;
+  background-color: #ffffff;
+  border: 2px solid #ddd;
+  padding: 15px;
+  margin: 5px 0;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.content-task:active {
+  cursor: grabbing;
+}
+
+.content-task.dragging {
+  opacity: 0.7;
+  transform: scale(1.05); /* Tăng kích thước nhẹ khi kéo */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  background-color: #e6f7ff; /* Màu nền khi đang kéo */
 }
 </style>
