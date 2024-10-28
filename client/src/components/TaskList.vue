@@ -135,6 +135,11 @@ const deleteTask = (id) => {
 </script>
 
 <style scoped>
+.list-group {
+  padding: 10px;
+  max-height: 740px;
+  overflow-y: auto;
+}
 .content-task {
   cursor: grab;
   background-color: #ffffff;
