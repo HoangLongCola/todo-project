@@ -3,9 +3,9 @@
     <template v-if="tasks.length">
       <li v-for="(task, index) in tasks" :key="task.id"
         class="list-group-item d-flex justify-content-between list-group-item-action content-task"
-        :draggable="indexEdit == null ? true : false" @dragstart="onDragStart(index)"
+        :draggable="taskIdEdit == null ? true : false" @dragstart="onDragStart(index)"
         @dragover.prevent="onDragOver(index)" @drop="onDrop(index)" @dragend="onDragEnd(index)">
-        <template v-if="indexEdit === index">
+        <template v-if="taskIdEdit === task.id">
           <Taskform :taskEdit="task" @update-task="updateTask" />
         </template>
         <template v-else>
@@ -24,13 +24,12 @@
             </span>
           </div>
           <div class="d-flex align-items-center">
-
             <template v-if="!task.is_completed">
               <a class="mx-2 text-success" href="#" data-bs-toggle="modal" data-bs-target="#complete"
                 @click.prevent="completeTask(task)">
                 <i class="fa-solid fa-check"></i>
               </a>
-              <a class="mx-2" href="#" @click.prevent="editTask(index)">
+              <a class="mx-2" href="#" @click.prevent="editTask(task.id)">
                 <i class="fa-solid fa-pen"></i>
               </a>
               <a class="mx-2 text-danger" href="#" @click.prevent="deleteTask(task.id)">
@@ -59,7 +58,7 @@ import { computed, ref } from 'vue';
 import Taskform from './Taskform.vue';
 const emit = defineEmits(['update-task', 'delete-task', 'update-task-order']);
 
-const indexEdit = ref(null);
+const taskIdEdit = ref(null);
 
 const props = defineProps({
   tasks: {
@@ -93,11 +92,11 @@ const onDragOver = (index) => {
   if (draggedIndex.value === index) return;
 
   const draggedTask = tasks.value[draggedIndex.value];
-  
+
   tasks.value.splice(draggedIndex.value, 1);
-  tasks.value.splice(index, 0, draggedTask); 
-  
-  draggedIndex.value = index; 
+  tasks.value.splice(index, 0, draggedTask);
+
+  draggedIndex.value = index;
 };
 
 const onDrop = () => {
@@ -105,12 +104,12 @@ const onDrop = () => {
     ...task,
     order: idx + 1,
   }));
-  
+
   emit('update-task-order', updatedTasks);
 };
 
 const updateTask = (data) => {
-  indexEdit.value = null;
+  taskIdEdit.value = null;
   emit('update-task', data);
 };
 
@@ -126,14 +125,15 @@ const completeTask = (task) => {
   emit('update-task', { ...task, is_completed: !task.is_completed }, "Hoàn thành công việc");
 };
 
-const editTask = (index) => {
-  indexEdit.value = index;
+const editTask = (taskId) => {
+  taskIdEdit.value = taskId;
 };
 
 const deleteTask = (id) => {
   emit('delete-task', id);
 };
 </script>
+
 <style scoped>
 .content-task {
   cursor: grab;
@@ -152,8 +152,8 @@ const deleteTask = (id) => {
 
 .content-task.dragging {
   opacity: 0.7;
-  transform: scale(1.05); /* Tăng kích thước nhẹ khi kéo */
+  transform: scale(1.05);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  background-color: #e6f7ff; /* Màu nền khi đang kéo */
+  background-color: #e6f7ff;
 }
 </style>
